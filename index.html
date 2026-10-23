@@ -1,0 +1,545 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>出遊打包清單</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap">
+<style>
+/* 版面：登機證存根（旅程設定＋進度）→ 撕票虛線 → 分類行李卡 */
+:root{
+  --bg:#F1EADF; --card:#FBF7F1; --ink:#2F261F; --ink-2:#7A6A5B;
+  --line:#DDD0BF; --green:#8A5A35; --green-soft:#EEE1CF; --signal:#9C6B55; --on-green:#FFFFFF; --on-signal:#FFFFFF;
+  --f-body:"Noto Sans TC",-apple-system,"Microsoft JhengHei",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+  --r:10px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#1C1814; --card:#26201B; --ink:#EDE4D8; --ink-2:#A8998A;
+  --line:#3A322B; --green:#CDB49A; --green-soft:#3A3129; --signal:#C9A08C; --on-green:#2A1C10; --on-signal:#2A1206;
+  color-scheme:dark;
+}}
+:root[data-theme="dark"]{
+  --bg:#1C1814; --card:#26201B; --ink:#EDE4D8; --ink-2:#A8998A;
+  --line:#3A322B; --green:#CDB49A; --green-soft:#3A3129; --signal:#C9A08C; --on-green:#2A1C10; --on-signal:#2A1206;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);line-height:1.6;
+  -webkit-text-size-adjust:100%}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);
+  z-index:10;background:var(--bg)}
+.wrap{max-width:760px;margin:0 auto;padding-block:20px 72px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px))}
+
+.eyebrow{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ink-2)}
+
+/* ---- 存根 ---- */
+.stub{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  overflow:hidden}
+.stub-top{padding:16px 18px 18px;display:flex;flex-direction:column;gap:14px}
+h1{font-size:21px;font-weight:700;letter-spacing:-.01em;margin:4px 0 0;line-height:1.3}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>.field{flex:1 1 170px}
+label.lb{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--ink-2)}
+input[type=text],input[type=number]{font:inherit;font-size:15px;color:var(--ink);
+  background:transparent;border:0;border-bottom:1.5px solid var(--line);
+  padding:4px 2px;width:100%;min-width:0;border-radius:0}
+input[type=text]:focus,input[type=number]:focus{outline:none;border-bottom-color:var(--green)}
+input[type=number]{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{font:inherit;font-size:13px;padding:5px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink-2)}
+.chip[aria-pressed=true]{background:var(--green);border-color:var(--green);
+  color:var(--on-green);font-weight:500}
+
+/* 撕票線 */
+.tear{position:relative;height:0;border-top:1.5px dashed var(--line)}
+.tear::before,.tear::after{content:"";position:absolute;top:-8px;width:16px;height:16px;
+  border-radius:50%;background:var(--bg)}
+.tear::before{left:-9px}.tear::after{right:-9px}
+
+.stub-bot{padding:14px 18px 16px;display:flex;flex-direction:column;gap:12px}
+.meter{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.meter b{font-family:var(--f-mono);font-size:27px;font-weight:600;letter-spacing:-.02em;
+  font-variant-numeric:tabular-nums;color:var(--green);line-height:1}
+.meter span{font-family:var(--f-mono);font-size:13px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums}
+.bar{height:7px;background:var(--green-soft);border-radius:999px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--green);border-radius:999px;
+  transition:width .25s ease}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+.acts{display:flex;gap:8px;flex-wrap:wrap}
+.btn{font:inherit;font-size:13px;padding:7px 13px;border-radius:7px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink)}
+.btn:hover{border-color:var(--green)}
+.btn[aria-pressed=true]{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:500}
+.btn.warn{color:var(--signal);border-color:var(--signal)}
+.btn.solid{background:var(--signal);border-color:var(--signal);color:var(--on-signal);font-weight:500}
+.btn:focus-visible,.chip:focus-visible,.x:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+/* ---- 分類卡 ---- */
+.cat{margin-top:18px;background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r);overflow:hidden}
+.cat-h{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:11px 16px;border-bottom:1px solid var(--line)}
+.cat-h h2{font-size:14.5px;font-weight:700;margin:0;letter-spacing:.01em}
+.cat-h .n{font-family:var(--f-mono);font-size:12px;color:var(--ink-2);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+ul{list-style:none;margin:0;padding:0}
+li.it{padding:9px 16px;border-bottom:1px solid var(--line)}
+li.it>.main{display:flex;align-items:flex-start;gap:11px}
+li.it:last-child{border-bottom:0}
+li.it label{display:flex;align-items:flex-start;gap:11px;flex:1 1 auto;min-width:0;cursor:pointer}
+li.it input[type=checkbox]{width:19px;height:19px;margin:3px 0 0;accent-color:var(--green);
+  flex:none;cursor:pointer}
+.nm{font-size:15px;font-weight:300;min-width:0;overflow-wrap:anywhere}
+.cat-h h2{font-weight:500!important}
+.subs{list-style:none;margin:6px 0 2px 30px;padding:0 0 0 12px;border-left:1.5px solid var(--line)}
+.subs li{display:flex;align-items:center;gap:8px;padding:3px 0}
+.subs label{display:flex;align-items:center;gap:9px;flex:1 1 auto;min-width:0;cursor:pointer}
+.subs input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--green);flex:none;cursor:pointer}
+.subs .nm{font-size:14px}
+.subs li.done .nm{color:var(--ink-2);text-decoration:line-through;text-decoration-thickness:1px}
+.hr{display:flex;align-items:center;gap:10px}
+.ed{font:inherit;font-size:12px;padding:3px 10px;border-radius:6px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink-2)}
+.ed:hover{border-color:var(--green);color:var(--green)}
+.ed[aria-pressed=true]{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.ed:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.pill{font:inherit;font-size:12px;padding:4px 11px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink-2);white-space:nowrap;flex:none}
+.pill[aria-pressed=true]{background:var(--green);border-color:var(--green);color:var(--on-green)}
+.pill:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.cat-h{cursor:pointer;user-select:none;-webkit-user-select:none}
+.cat-h .tg{display:flex;align-items:center;gap:8px;min-width:0;flex:1 1 auto}
+.chev{font-size:11px;color:var(--ink-2);transition:transform .15s ease;display:inline-block}
+.cat.fold .chev{transform:rotate(-90deg)}
+.cat.fold .cat-h{border-bottom:0}
+.cat.full .n{color:var(--green);font-weight:600}
+@media (prefers-reduced-motion:reduce){.chev{transition:none}}
+@media (max-width:520px){.sticky .inner{gap:7px;padding:6px 8px 6px 12px}.pill{padding:4px 8px}}
+li.it.off>.main,li.it.off>.subs{opacity:.45}
+.tagedit{display:flex;flex-wrap:wrap;align-items:center;gap:5px;margin:6px 0 0 30px}
+.tagedit .tl{font-size:11.5px;color:var(--ink-2);margin-right:2px}
+.tagedit .th{font-size:11px;color:var(--ink-2)}
+.tch{font:inherit;font-size:11.5px;padding:1px 8px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--line);background:transparent;color:var(--ink-2)}
+.tch[aria-pressed=true]{background:var(--green-soft);border-color:var(--green);color:var(--green);font-weight:500}
+.tch:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+.sc{font-family:var(--f-mono);font-size:11px;color:var(--ink-2);margin-left:7px;white-space:nowrap}
+.mini{font:inherit;font-size:12px;color:var(--green);background:transparent;border:1px dashed var(--line);
+  border-radius:6px;padding:2px 8px;margin:6px 0 0 30px;cursor:pointer}
+.add.subadd{margin:5px 0 0 30px;padding:4px 8px;border-radius:6px}
+.nm .note{display:block;font-size:12px;font-weight:300;color:var(--ink-2);line-height:1.45}
+.qty{font-family:var(--f-mono);font-size:12px;font-weight:600;color:var(--green);
+  background:var(--green-soft);border-radius:5px;padding:1px 6px;margin-left:7px;
+  white-space:nowrap;font-variant-numeric:tabular-nums}
+.tag{font-family:var(--f-mono);font-size:10px;letter-spacing:.06em;color:var(--ink-2);
+  border:1px solid var(--line);border-radius:4px;padding:0 4px;margin-left:5px;white-space:nowrap}
+li.done .nm{color:var(--ink-2);text-decoration:line-through;text-decoration-thickness:1px}
+li.done .qty{opacity:.5}
+.x{font:inherit;font-size:16px;line-height:1;color:var(--ink-2);background:transparent;
+  border:0;cursor:pointer;padding:4px 6px;flex:none;border-radius:5px}
+.x:hover{color:var(--signal)}
+.add{display:flex;align-items:center;gap:6px;padding:6px 16px;background:var(--bg)}
+.add input[type=text]{flex:1 1 auto;font-size:13px;padding:3px 2px}
+.add .btn{font-size:12px;padding:3px 10px;border-radius:6px;white-space:nowrap;flex:none}
+.empty{padding:26px 16px;text-align:center;color:var(--ink-2);font-size:14px}
+.foot{margin-top:22px;font-size:12.5px;color:var(--ink-2);line-height:1.7}
+.sticky{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;
+  background:var(--bg);padding-block:8px;margin-top:14px}
+.sticky .inner{display:flex;align-items:center;gap:11px;background:var(--card);
+  border:1px solid var(--line);border-radius:999px;padding:7px 14px}
+.sticky .inner .bar{flex:1 1 auto;min-width:0}
+.sticky .inner b{font-family:var(--f-mono);font-size:13px;font-weight:600;
+  color:var(--green);font-variant-numeric:tabular-nums;white-space:nowrap}
+.note-line{font-size:12.5px;color:var(--signal);padding:0 2px}
+</style>
+
+<div class="wrap">
+  <header class="stub">
+    <div class="stub-top">
+      <div class="eyebrow">Packing list · 可重複使用</div>
+      <h1>出遊打包清單</h1>
+      <div class="field">
+        <label class="lb" for="tripName">這趟旅程</label>
+        <input type="text" id="tripName" placeholder="例如：11 月沖繩" autocomplete="off">
+      </div>
+      <div class="row">
+        <div class="field" style="flex:0 0 96px">
+          <label class="lb" for="days">天數</label>
+          <input type="number" id="days" min="1" max="60" step="1" value="3">
+        </div>
+        <div class="field">
+          <label class="lb">旅程類型（可多選・點一下切換）</label>
+          <div class="chips" id="chips"></div>
+        </div>
+      </div>
+    </div>
+    <div class="tear"></div>
+    <div class="stub-bot">
+      <div class="meter"><b id="pct">0%</b><span id="count">載入中…</span></div>
+      <div class="bar"><i id="barTop" style="width:0%"></i></div>
+      <div class="acts">
+        <button class="btn warn" id="btnReset" type="button">新旅程（清空勾選）</button>
+        <button class="btn" id="btnUndo" type="button" hidden>↩ 復原</button>
+      </div>
+      <div class="note-line" id="msg" hidden></div>
+    </div>
+  </header>
+
+  <div class="sticky" id="sticky" hidden>
+    <div class="inner">
+      <b id="pct2">0%</b>
+      <div class="bar"><i id="bar2" style="width:0%"></i></div>
+      <button class="pill" id="btnHide" aria-pressed="false" type="button">只看未打包</button>
+      <button class="pill" id="btnFold" type="button">全部收合</button>
+    </div>
+  </div>
+
+  <main id="list"><div class="empty">載入中…</div></main>
+
+  <p class="foot">
+    獨立網頁版：勾選、天數、自訂項目會自動存在這台裝置的這個瀏覽器裡，不會和其他裝置同步；清除瀏覽資料或換瀏覽器就會重新開始。<br>
+    點分類標題可收合／展開，整類打包完會自動收起；下方的浮動列隨時可切換「只看未打包」。
+  </p>
+</div>
+
+<script>
+const CATS=[["buy","用品待買"],["doc","證件與金錢"],["tech","電子與充電"],["cloth","衣物"],
+ ["wash","盥洗與保養"],["med","藥品與醫療"],["carry","隨身小包"],["misc","其他與出門前"]];
+const TRIPS=[["domestic","國內"],["abroad","國外"],["beach","海島"],
+ ["outdoor","露營"],["work","出差"]];
+const TRIPNAME=Object.fromEntries(TRIPS);
+const DEFAULT_ITEMS=[{"cat":"doc","id":"i001","name":"身分證","note":"","per":0,"plus":0,"trips":[]},{"cat":"doc","id":"i002","name":"護照（效期滿 6 個月）","note":"","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"doc","id":"i003","name":"簽證／電子入境許可","note":"出發前先查當地規定","per":0,"plus":0,"trips":["abroad"]},{"cat":"doc","id":"i004","name":"機票／電子登機證","note":"","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"doc","id":"i005","name":"住宿訂房確認","note":"","per":0,"plus":0,"trips":[]},{"cat":"doc","id":"i006","name":"旅遊平安險＋不便險","note":"","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"doc","id":"i007","name":"信用卡（兩張不同發卡行）","note":"一張刷、一張備用","per":0,"plus":0,"trips":[]},{"cat":"doc","id":"i008","name":"現金／當地貨幣","note":"","per":0,"plus":0,"trips":[]},{"cat":"doc","id":"i009","name":"台灣駕照","note":"","per":0,"plus":0,"trips":[]},{"cat":"doc","id":"i010","name":"國際駕照","note":"租車必備","per":0,"plus":0,"trips":["abroad"]},{"cat":"doc","id":"i011","name":"悠遊卡／交通票券","note":"","per":0,"plus":0,"trips":["domestic"]},{"cat":"doc","id":"i012","name":"證件影本或手機備份照","note":"與正本分開放","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"tech","id":"i013","name":"手機","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i014","name":"手機充電線","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i015","name":"充電頭","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i016","name":"行動電源","note":"須隨身，不可託運","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i017","name":"萬用轉接插頭","note":"先查當地插座與電壓","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"tech","id":"i018","name":"耳機","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i019","name":"相機＋記憶卡","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i020","name":"相機電池與充電器","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i021","name":"自拍棒／小腳架","note":"","per":0,"plus":0,"trips":[]},{"cat":"tech","id":"i022","name":"筆電＋充電器","note":"","per":0,"plus":0,"trips":["work"]},{"cat":"tech","id":"i023","name":"延長線或一分多插","note":"旅館插座常不夠","per":0,"plus":0,"trips":[]},{"cat":"cloth","id":"i024","name":"上衣","note":"","per":1,"plus":0,"trips":[]},{"cat":"cloth","id":"i025","name":"內衣褲","note":"多帶一套備用","per":1,"plus":1,"trips":[]},{"cat":"cloth","id":"i026","name":"襪子","note":"","per":1,"plus":1,"trips":[]},{"cat":"cloth","id":"i027","name":"褲子／裙子","note":"","per":0.5,"plus":0,"trips":[]},{"cat":"cloth","id":"i028","name":"外套","note":"","per":0,"plus":0,"trips":[]},{"cat":"cloth","id":"i029","name":"睡衣","note":"","per":0,"plus":0,"trips":[]},{"cat":"cloth","id":"i030","name":"好走的鞋","note":"","per":0,"plus":0,"trips":[]},{"cat":"cloth","id":"i031","name":"登山鞋","note":"","per":0,"plus":0,"trips":["outdoor"]},{"cat":"cloth","id":"i032","name":"泳衣","note":"","per":0,"plus":0,"trips":["beach"]},{"cat":"cloth","id":"i033","name":"海灘拖鞋","note":"","per":0,"plus":0,"trips":["beach"]},{"cat":"cloth","id":"i034","name":"防曬薄長袖","note":"","per":0,"plus":0,"trips":["beach","outdoor"]},{"cat":"cloth","id":"i035","name":"保暖中層／刷毛","note":"","per":0,"plus":0,"trips":["outdoor"]},{"cat":"cloth","id":"i036","name":"正式服裝","note":"","per":0,"plus":0,"trips":["work"]},{"cat":"cloth","id":"i037","name":"雨衣或折傘","note":"","per":0,"plus":0,"trips":[]},{"cat":"cloth","id":"i038","name":"帽子","note":"","per":0,"plus":0,"trips":[]},{"cat":"cloth","id":"i039","name":"髒衣袋","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i040","name":"牙刷牙膏","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i041","name":"洗面乳","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i042","name":"洗髮沐浴（分裝）","note":"隨身行李單瓶 ≤100ml","per":0,"plus":0,"subs":[{"id":"i042s1","name":"洗髮精"},{"id":"i042s2","name":"潤髮乳"},{"id":"i042s3","name":"沐浴乳"}],"trips":[]},{"cat":"wash","id":"i043","name":"毛巾","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i044","name":"保養品（分裝）","note":"","per":0,"plus":0,"subs":[{"id":"i044s1","name":"化妝水"},{"id":"i044s2","name":"乳液"},{"id":"i044s3","name":"精華液"},{"id":"i044s6","name":"卸妝用品"}],"trips":[]},{"cat":"wash","id":"i045","name":"防曬","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i046","name":"隱形眼鏡＋藥水","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i047","name":"眼鏡（含備用）","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i048","name":"梳子","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i050","name":"生理用品","note":"","per":0,"plus":0,"trips":[]},{"cat":"wash","id":"i051","name":"面膜","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i052","name":"慣用藥（附藥單或處方）","note":"出國帶藥單較保險","per":0,"plus":0,"subs":[{"id":"i052s1","name":"每日固定用藥"},{"id":"i052s2","name":"藥單／處方影本"}],"trips":[]},{"cat":"med","id":"i053","name":"腸胃藥","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i054","name":"止痛藥","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i055","name":"感冒藥","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i056","name":"暈車藥","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i057","name":"OK 繃＋優碘","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i058","name":"防蚊液","note":"","per":0,"plus":0,"trips":["beach","outdoor"]},{"cat":"med","id":"i059","name":"蚊蟲止癢藥","note":"","per":0,"plus":0,"trips":["beach","outdoor"]},{"cat":"med","id":"i060","name":"口罩","note":"","per":0,"plus":0,"trips":[]},{"cat":"med","id":"i061","name":"酒精濕紙巾","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i062","name":"手機頸掛繩或手機架","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i063","name":"水壺","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i064","name":"環保袋","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i065","name":"面紙／濕紙巾","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i066","name":"護唇膏","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i067","name":"墨鏡","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i068","name":"隨身零食","note":"","per":0,"plus":0,"trips":[]},{"cat":"carry","id":"i069","name":"眼罩＋耳塞","note":"長程交通用","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"carry","id":"i070","name":"頸枕","note":"","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"misc","id":"i071","name":"行李秤","note":"避免超重費","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"misc","id":"i072","name":"行李吊牌","note":"","per":0,"plus":0,"trips":[]},{"cat":"misc","id":"i073","name":"TSA 海關鎖","note":"","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"misc","id":"i074","name":"壓縮袋／分裝袋","note":"","per":0,"plus":0,"trips":[]},{"cat":"misc","id":"i075","name":"夾鏈袋","note":"","per":0,"plus":0,"trips":[]},{"cat":"misc","id":"i076","name":"離線地圖與翻譯 App 先下載","note":"","per":0,"plus":0,"trips":["abroad","beach"]},{"cat":"misc","id":"i077","name":"行程表留一份給家人","note":"","per":0,"plus":0,"trips":[]},{"cat":"misc","id":"i078","name":"關窗、斷電、關瓦斯","note":"","per":0,"plus":0,"trips":[]},{"cat":"misc","id":"i079","name":"寵物／植物託人照顧","note":"","per":0,"plus":0,"trips":[]},{"cat":"misc","id":"i080","name":"垃圾清空、冰箱清理","note":"","per":0,"plus":0,"trips":[]}];
+
+const PATH={items:"list/items",trip:"list/trip",checked:"list/checked"};
+let db=null,backend="local",canWrite=true;
+let items=null,trip={"name":"","days":3,"types":["domestic"]},checked={};
+let editCats={},hideDone=false,folded={},inflight={},confirming=false;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>
+ ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const uid=()=>"u"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+function msg(t){const e=$("msg");if(!t){e.hidden=true;return}e.textContent=t;e.hidden=false}
+
+/* ---------- 儲存 ---------- */
+function lsGet(k,fb){try{const v=localStorage.getItem("pk_"+k);return v?JSON.parse(v):fb}
+ catch(e){return fb}}
+function lsSet(k,v){try{localStorage.setItem("pk_"+k,JSON.stringify(v))}catch(e){}}
+function body(k){
+ if(k==="items")return{items:items};
+ if(k==="trip")return{name:trip.name,days:trip.days,types:trip.types};
+ return{ids:Object.keys(checked).filter(id=>checked[id])};
+}
+const timers={},dirty={};
+const busy=k=>inflight[k]||(Date.now()-(dirty[k]||0)<3000);
+function persist(k,delay){
+ dirty[k]=Date.now();
+ if(backend!=="db"){lsSet(k,body(k));return}
+ clearTimeout(timers[k]);
+ timers[k]=setTimeout(async()=>{
+  if(backend!=="db"){lsSet(k,body(k));return}
+  if(!canWrite)return;
+  inflight[k]=(inflight[k]||0)+1;
+  try{await db.doc(PATH[k]).set(body(k));msg("")}
+  catch(e){
+   if(e&&e.code==="invalid_argument"){canWrite=false;
+    msg("這個連結只有檢視權限，變更不會被儲存。")}
+   else msg("儲存失敗，請稍後再試。");
+  }
+  finally{inflight[k]--;dirty[k]=Date.now()}
+ },delay||300);
+}
+
+/* ---------- 子項目預設 ---------- */
+const DEFAULT_SUBS={
+ i044:["化妝水","乳液","精華液","乳霜／凝膠","眼霜","卸妝用品"],
+ i042:["洗髮精","潤髮乳","沐浴乳"],
+ i052:["每日固定用藥","藥單／處方影本"]
+};
+const clone=v=>JSON.parse(JSON.stringify(v));
+function migrate(){
+ if(!Array.isArray(items))return false;let ch=false;
+ items=items.map(it=>{
+  if(DEFAULT_SUBS[it.id]&&it.subs===undefined){ch=true;
+   return Object.assign({},it,{subs:DEFAULT_SUBS[it.id].map((n,k)=>({id:it.id+"s"+(k+1),name:n}))})}
+  return it});
+ return ch;
+}
+let addingFor=null;
+
+/* ---------- 計算 ---------- */
+const visible=()=>items.filter(it=>!it.trips||!it.trips.length||
+ it.trips.some(t=>trip.types.includes(t)));
+function qtyOf(it){
+ if(!it.per)return it.plus>0?it.plus:0;
+ return Math.ceil(trip.days*it.per)+(it.plus||0);
+}
+const isEd=c=>!!editCats[c];
+const isFold=c=>!!folded[c]&&!editCats[c];
+function saveUi(){lsSet("ui",{folded:folded,hideDone:hideDone})}
+function catDone(cid){const r=visible().filter(it=>it.cat===cid);return r.length>0&&r.every(isDone)}
+const subsOf=it=>Array.isArray(it.subs)?it.subs:[];
+function isDone(it){const ss=subsOf(it);
+ return ss.length?ss.every(x=>checked[x.id]):!!checked[it.id]}
+
+/* ---------- 繪製 ---------- */
+function renderChips(){
+ $("chips").innerHTML=TRIPS.map(([id,lb])=>
+  '<button class="chip" type="button" data-trip="'+id+'" aria-pressed="'+
+  (trip.types.includes(id)?"true":"false")+'">'+esc(lb)+"</button>").join("");
+}
+function itemHTML(it){
+ const q=qtyOf(it),on=isDone(it),ss=subsOf(it);
+ const nd=ss.filter(x=>checked[x.id]).length;
+ const off=isEd(it.cat)&&!visible().includes(it);
+ let h='<li class="it'+(on?" done":"")+(off?" off":"")+'" data-id="'+it.id+'"><div class="main">'+
+  '<label><input type="checkbox" data-pc="'+it.id+'"'+(on?" checked":"")+'>'+
+  '<span class="nm">'+esc(it.name)+
+  (q>0?'<span class="qty">×'+q+"</span>":"")+
+  (ss.length?'<span class="sc">'+nd+"/"+ss.length+"</span>":"")+
+  (it.trips&&it.trips.length?'<span class="tag">'+
+    it.trips.map(t=>esc(TRIPNAME[t]||t)).join("·")+"</span>":"")+
+  (it.note?'<span class="note">'+esc(it.note)+"</span>":"")+
+  "</span></label>"+
+  (isEd(it.cat)?'<button class="x" type="button" data-del="'+it.id+
+    '" aria-label="刪除 '+esc(it.name)+'">×</button>':"")+"</div>";
+ if(ss.length){
+  h+='<ul class="subs">'+ss.map(x=>{const c=!!checked[x.id];
+   return '<li class="'+(c?"done":"")+'"><label><input type="checkbox" data-sc="'+x.id+
+    '"'+(c?" checked":"")+'><span class="nm">'+esc(x.name)+'</span></label>'+
+    (isEd(it.cat)?'<button class="x" type="button" data-delsub="'+x.id+'" data-pid="'+it.id+
+     '" aria-label="刪除 '+esc(x.name)+'">×</button>':"")+"</li>"}).join("")+"</ul>";
+ }
+ if(isEd(it.cat)){
+  const tr=it.trips||[];
+  h+='<div class="tagedit"><span class="tl">顯示於</span>'+TRIPS.map(([t,lb])=>
+   '<button type="button" class="tch" data-tagit="'+it.id+'" data-tag="'+t+'" aria-pressed="'+tr.includes(t)+'">'+esc(lb)+'</button>').join("")+
+   '<span class="th">'+(tr.length?"":"未選＝所有旅程都顯示")+'</span></div>';
+  if(addingFor===it.id)h+='<form class="add subadd" data-pid="'+it.id+'">'+
+   '<input type="text" id="sub_'+it.id+'" placeholder="新增「'+esc(it.name)+'」的子項目…" autocomplete="off">'+
+   '<button class="btn" type="submit">加入</button></form>';
+  else h+='<button class="mini" type="button" data-addsub="'+it.id+'">＋子項目</button>';
+ }
+ return h+"</li>";
+}
+function renderList(){
+ const host=$("list");
+ if(!items){host.innerHTML='<div class="empty">載入中…</div>';return}
+ if(!items.length){
+  host.innerHTML='<div class="cat"><div class="empty">清單還是空的。'+
+   '<br><br><button class="btn solid" id="btnSeed" type="button">載入預設清單</button></div></div>';
+  $("btnSeed").onclick=()=>{items=clone(DEFAULT_ITEMS);migrate();
+   persist("items",0);draw()};
+  return;
+ }
+ const vis=visible();
+ let html="";
+ for(const [cid,clabel] of CATS){
+  const vrows=vis.filter(it=>it.cat===cid);
+  const total=vrows.length,done=vrows.filter(isDone).length;
+  let rows=isEd(cid)?items.filter(it=>it.cat===cid):vrows;
+  if(hideDone&&!isEd(cid))rows=rows.filter(it=>!isDone(it));
+  if(!total&&!isEd(cid)&&cid!=="buy")continue;
+  const fd=isFold(cid),full=total>0&&done===total;
+  html+='<section class="cat'+(fd?" fold":"")+(full?" full":"")+'"><div class="cat-h" data-tog="'+cid+
+   '" role="button" tabindex="0" aria-expanded="'+(!fd)+'"><div class="tg"><span class="chev">▾</span><h2>'+esc(clabel)+
+   '</h2></div><div class="hr"><span class="n">'+(full?"✓ ":"")+done+" / "+total+"</span>"+
+   '<button class="ed" type="button" data-edcat="'+cid+'" aria-pressed="'+isEd(cid)+'">'+
+   (isEd(cid)?"完成":"編輯")+"</button></div></div>";
+  if(fd){html+="</section>";continue}
+  if(rows.length)html+="<ul>"+rows.map(itemHTML).join("")+"</ul>";
+  else if(!isEd(cid))html+='<div class="empty">'+(!total&&cid==="buy"?
+   "還沒有要買的東西，按右邊「編輯」新增。":"這一類都打包完了。")+'</div>';
+  if(isEd(cid)){
+   html+='<form class="add" data-cat="'+cid+'">'+
+    '<input type="text" id="add_'+cid+'" placeholder="新增到「'+esc(clabel)+
+    '」…" autocomplete="off">'+
+    '<button class="btn" type="submit">加入</button></form>';
+  }
+  html+="</section>";
+ }
+ host.innerHTML=html||'<div class="empty">目前的旅程類型沒有對應項目。</div>';
+}
+function renderMeter(){
+ const vis=items?visible():[];
+ const total=vis.length,done=vis.filter(isDone).length;
+ const p=total?Math.round(done/total*100):0;
+ $("pct").textContent=p+"%";$("pct2").textContent=p+"%";
+ $("count").textContent=total?"已打包 "+done+" / "+total+" 項":"沒有項目";
+ $("barTop").style.width=p+"%";$("bar2").style.width=p+"%";
+ $("sticky").hidden=!total;
+ const cs=CATS.map(c=>c[0]).filter(c=>vis.some(it=>it.cat===c));
+ $("btnFold").textContent=cs.length&&cs.every(c=>folded[c])?"全部展開":"全部收合";
+}
+function draw(){renderChips();renderList();renderMeter();syncInputs()}
+function syncInputs(){
+ if(document.activeElement!==$("tripName"))$("tripName").value=trip.name||"";
+ if(document.activeElement!==$("days"))$("days").value=trip.days;
+}
+
+/* ---------- 事件（一律建立新資料，不直接修改同步回來的物件） ---------- */
+$("chips").addEventListener("click",e=>{
+ const b=e.target.closest("[data-trip]");if(!b)return;
+ const id=b.dataset.trip;
+ const types=trip.types.includes(id)?trip.types.filter(t=>t!==id):trip.types.concat([id]);
+ trip=Object.assign({},trip,{types:types});
+ persist("trip");draw();
+});
+$("tripName").addEventListener("input",e=>{trip=Object.assign({},trip,{name:e.target.value});persist("trip",600)});
+$("days").addEventListener("input",e=>{
+ const v=parseInt(e.target.value,10);
+ trip=Object.assign({},trip,{days:isNaN(v)?1:Math.min(60,Math.max(1,v))});
+ persist("trip",600);renderList();renderMeter();
+});
+$("list").addEventListener("change",e=>{
+ const cb=e.target;if(cb.type!=="checkbox")return;
+ const nc=Object.assign({},checked);
+ if(cb.dataset.sc){if(cb.checked)nc[cb.dataset.sc]=true;else delete nc[cb.dataset.sc]}
+ else if(cb.dataset.pc){
+  const it=items.find(x=>x.id===cb.dataset.pc);if(!it)return;
+  const ss=subsOf(it);
+  if(ss.length)ss.forEach(x=>{if(cb.checked)nc[x.id]=true;else delete nc[x.id]});
+  else{if(cb.checked)nc[it.id]=true;else delete nc[it.id]}
+ }else return;
+ const li=cb.closest("li.it"),it0=li&&items.find(x=>x.id===li.dataset.id);
+ const cat=it0&&it0.cat,was=cat?catDone(cat):false;
+ checked=nc;persist("checked",400);
+ if(cat&&!was&&catDone(cat)&&!isEd(cat)){folded=Object.assign({},folded,{[cat]:true});saveUi()}
+ renderList();renderMeter();
+});
+$("list").addEventListener("click",e=>{
+ const ec=e.target.closest("[data-edcat]");
+ if(ec){const c=ec.dataset.edcat;editCats=Object.assign({},editCats,{[c]:!editCats[c]});
+  if(editCats[c])folded=Object.assign({},folded,{[c]:false});
+  addingFor=null;saveUi();renderList();return}
+ const tt=e.target.closest("[data-tagit]");
+ if(tt){const id=tt.dataset.tagit,t=tt.dataset.tag;
+  items=items.map(x=>{if(x.id!==id)return x;const tr=x.trips||[];
+   return Object.assign({},x,{trips:tr.includes(t)?tr.filter(y=>y!==t):tr.concat([t])})});
+  persist("items");renderList();renderMeter();return}
+ const tg=e.target.closest("[data-tog]");
+ if(tg){const c=tg.dataset.tog;folded=Object.assign({},folded,{[c]:!folded[c]});
+  saveUi();renderList();renderMeter();return}
+ const d=e.target.closest("[data-del]");
+ if(d){const id=d.dataset.del,it=items.find(x=>x.id===id);
+  const nc=Object.assign({},checked);delete nc[id];
+  if(it)subsOf(it).forEach(x=>delete nc[x.id]);
+  items=items.filter(x=>x.id!==id);checked=nc;
+  persist("items");persist("checked",400);draw();return}
+ const ds=e.target.closest("[data-delsub]");
+ if(ds){const sid=ds.dataset.delsub,pid=ds.dataset.pid;
+  items=items.map(x=>x.id===pid?Object.assign({},x,{subs:subsOf(x).filter(y=>y.id!==sid)}):x);
+  const nc=Object.assign({},checked);delete nc[sid];checked=nc;
+  persist("items");persist("checked",400);renderList();renderMeter();return}
+ const a=e.target.closest("[data-addsub]");
+ if(a){addingFor=a.dataset.addsub;renderList();
+  const inp=document.getElementById("sub_"+addingFor);if(inp)inp.focus()}
+});
+$("list").addEventListener("submit",e=>{
+ const f=e.target.closest("form.add");if(!f)return;
+ e.preventDefault();
+ const inp=f.querySelector("input"),name=inp.value.trim();
+ if(!name)return;
+ if(f.dataset.pid){const pid=f.dataset.pid;
+  items=items.map(x=>x.id===pid?Object.assign({},x,{subs:subsOf(x).concat([{id:uid(),name:name}])}):x);
+  persist("items");renderList();renderMeter();
+  const again=document.getElementById("sub_"+pid);if(again)again.focus();return}
+ items=items.concat([{id:uid(),name:name,cat:f.dataset.cat,trips:[],per:0,plus:0,note:""}]);
+ persist("items");inp.value="";
+ renderList();renderMeter();
+ const again=document.getElementById("add_"+f.dataset.cat);if(again)again.focus();
+});
+$("list").addEventListener("keydown",e=>{
+ const tg=e.target.closest&&e.target.closest("[data-tog]");
+ if(tg&&e.target===tg&&(e.key==="Enter"||e.key===" ")){e.preventDefault();tg.click()}
+});
+$("btnHide").onclick=()=>{hideDone=!hideDone;
+ $("btnHide").setAttribute("aria-pressed",String(hideDone));saveUi();renderList()};
+$("btnFold").onclick=()=>{
+ const cs=CATS.map(c=>c[0]).filter(c=>visible().some(it=>it.cat===c));
+ const all=cs.every(c=>folded[c]),nf={};
+ cs.forEach(c=>{nf[c]=!all});folded=nf;saveUi();renderList();renderMeter();
+ if(!all)window.scrollTo({top:$("list").offsetTop-60})};
+(function(){const u=lsGet("ui",null);
+ if(u){folded=u.folded&&typeof u.folded==="object"?u.folded:{};hideDone=!!u.hideDone;
+  $("btnHide").setAttribute("aria-pressed",String(hideDone))}})();
+
+let armedAt=0,undoSnap=null,undoTimer=null;
+function resetBtn(){const b=$("btnReset");confirming=false;b.className="btn warn";
+ b.textContent="新旅程（清空勾選）"}
+$("btnReset").onclick=()=>{
+ const b=$("btnReset"),n=Object.keys(checked).length;
+ if(!confirming){
+  if(!n){msg("目前沒有任何勾選，不需要清空。");setTimeout(()=>msg(""),2500);return}
+  confirming=true;armedAt=Date.now();b.className="btn solid";
+  b.textContent="確定清空 "+n+" 個勾選？再按一次";
+  setTimeout(()=>{if(confirming)resetBtn()},5000);
+  return;
+ }
+ if(Date.now()-armedAt<1000)return; /* 1 秒內的連點不算數 */
+ resetBtn();
+ undoSnap=Object.assign({},checked);
+ checked={};persist("checked",0);draw();
+ const u=$("btnUndo");u.hidden=false;u.textContent="↩ 復原 "+n+" 個勾選";
+ clearTimeout(undoTimer);undoTimer=setTimeout(()=>{u.hidden=true;undoSnap=null},30000);
+};
+$("btnUndo").onclick=()=>{
+ if(!undoSnap)return;
+ checked=Object.assign({},undoSnap);undoSnap=null;
+ $("btnUndo").hidden=true;clearTimeout(undoTimer);
+ persist("checked",0);draw();
+};
+
+/* ---------- 啟動 ---------- */
+function startLocal(){
+ backend="local";
+ items=clone(lsGet("items",{items:null}).items||DEFAULT_ITEMS);
+ if(migrate())persist("items",0);
+ const t=lsGet("trip",null);
+ if(t&&Array.isArray(t.types))trip={name:t.name||"",days:t.days||3,types:t.types.slice()};
+ const c=lsGet("checked",null);
+ checked={};if(c&&Array.isArray(c.ids))c.ids.forEach(id=>{checked[id]=true});
+ draw();
+}
+(async()=>{
+ draw();
+ let cap=null;
+ try{cap=window.claude&&claude.use?await claude.use("db"):null}catch(e){cap=null}
+ if(!cap){startLocal();
+  return}
+ db=cap;backend="db";
+ try{const u=await claude.use("user");
+  if(u&&u.can&&u.can("data.write")===false)canWrite=false}catch(e){}
+ let got=0;
+ const ready=()=>{if(++got>=3&&items===null){items=[];draw()}};
+ const errh=e=>{if(e&&e.code==="revoked")msg("連線已結束，請重新載入頁面。")};
+ db.doc(PATH.items).onSnapshot(s=>{
+  if(busy("items"))return;
+  const d=s.exists?s.data():null,v=d?d.items:null;
+  if(Array.isArray(v)){items=clone(v);if(migrate())persist("items",0)}
+  else if(items===null){items=[]}
+  draw();ready();
+ },errh);
+ db.doc(PATH.trip).onSnapshot(s=>{
+  if(busy("trip"))return;
+  const v=s.exists?s.data():null;
+  if(v&&Array.isArray(v.types))
+   trip={name:v.name||"",days:v.days||3,types:Array.from(v.types)};
+  draw();ready();
+ },errh);
+ db.doc(PATH.checked).onSnapshot(s=>{
+  if(busy("checked"))return;
+  const d=s.exists?s.data():null,v=d?d.ids:null;
+  if(Array.isArray(v)){const nc={};Array.from(v).forEach(id=>{nc[id]=true});checked=nc}
+  draw();ready();
+ },errh);
+ setTimeout(()=>{if(items===null){items=[];draw()}},6000);
+})();
+</script>
+
+</body></html>

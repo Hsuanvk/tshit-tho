@@ -157,6 +157,7 @@ li.done .qty{opacity:.5}
 .note-line{font-size:12.5px;color:var(--signal);padding:0 2px}
 @media (pointer:coarse){input[type=text],input[type=number],.add input[type=text]{font-size:16px}}
 .add input[type=text]{min-width:0}
+.add.top{border-bottom:1px solid var(--line)}
 </style>
 
 <div class="wrap">
@@ -354,15 +355,15 @@ function renderList(){
    '<button class="ed" type="button" data-edcat="'+cid+'" aria-pressed="'+isEd(cid)+'">'+
    (isEd(cid)?"完成":"編輯")+"</button></div></div>";
   if(fd){html+="</section>";continue}
+  if(isEd(cid)){
+   html+='<form class="add top" data-cat="'+cid+'">'+
+    '<input type="text" id="add_'+cid+'" placeholder="新增到「'+esc(clabel)+
+    '」…" autocomplete="off" enterkeyhint="done">'+
+    '<button class="btn" type="submit">加入</button></form>';
+  }
   if(rows.length)html+="<ul>"+rows.map(itemHTML).join("")+"</ul>";
   else if(!isEd(cid))html+='<div class="empty">'+(!total&&cid==="buy"?
    "還沒有要買的東西，按右邊「編輯」新增。":"這一類都打包完了。")+'</div>';
-  if(isEd(cid)){
-   html+='<form class="add" data-cat="'+cid+'">'+
-    '<input type="text" id="add_'+cid+'" placeholder="新增到「'+esc(clabel)+
-    '」…" autocomplete="off">'+
-    '<button class="btn" type="submit">加入</button></form>';
-  }
   html+="</section>";
  }
  host.innerHTML=html||'<div class="empty">目前的旅程類型沒有對應項目。</div>';
@@ -451,7 +452,9 @@ $("list").addEventListener("submit",e=>{
   items=items.map(x=>x.id===pid?Object.assign({},x,{subs:subsOf(x).concat([{id:uid(),name:name}])}):x);
   persist("items");renderList();renderMeter();
   const again=document.getElementById("sub_"+pid);if(again)again.focus();return}
- items=items.concat([{id:uid(),name:name,cat:f.dataset.cat,trips:[],per:0,plus:0,note:""}]);
+ const ni={id:uid(),name:name,cat:f.dataset.cat,trips:[],per:0,plus:0,note:""};
+ const at=items.findIndex(x=>x.cat===ni.cat);
+ items=at<0?items.concat([ni]):items.slice(0,at).concat([ni],items.slice(at));
  persist("items");inp.value="";
  renderList();renderMeter();
  const again=document.getElementById("add_"+f.dataset.cat);if(again)again.focus();
